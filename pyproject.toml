@@ -7,8 +7,13 @@ readme = "README.md"
 packages = [{include = "deck_view"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-
+python = "^3.10"
+vkwave = {url = "https://github.com/fscdev/vkwave/archive/master.zip"}
+requests = "^2.31.0"
+grequests = "^0.7.0"
+pillow = "^10.0.0"
+numpy = "^1.25.1"
+python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
