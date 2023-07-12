@@ -1,4 +1,5 @@
 # HearthstoneDeckView
+#### [Version for DISCORD](https://github.com/h4x4d/HearthstoneDeckViewDS)
 
 Bot which creates pictures like this:
 

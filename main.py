@@ -2,6 +2,7 @@ import os
 import random
 
 import grequests
+from vkwave.api.methods._error import APIError
 from vkwave.bots import (DocUploader, PhotoUploader, SimpleBotEvent,
                          SimpleLongPollBot)
 
@@ -45,16 +46,25 @@ async def main(event: SimpleBotEvent):
 
             image.save(f"{name}.png", format="PNG")
             print("image_saved")
-
-            resp = await photo_uploader.get_attachment_from_path(
-                peer_id=event.peer_id, file_path=f"{name}.png",
-                file_extension="png")
-
             resp_doc = ""
-            if event.peer_id < 2000000000:
-                resp_doc = await file_uploader.get_attachment_from_path(
+
+            try:
+                resp = await photo_uploader.get_attachment_from_path(
                     peer_id=event.peer_id, file_path=f"{name}.png",
                     file_extension="png")
+
+                if event.peer_id < 2000000000:
+                    resp_doc = await file_uploader.get_attachment_from_path(
+                        peer_id=event.peer_id, file_path=f"{name}.png",
+                        file_extension="png")
+            except APIError:
+                try:
+                    resp = await photo_uploader.get_attachment_from_path(
+                        peer_id=event.user_id, file_path=f"{name}.png",
+                        file_extension="png")
+                except APIError:
+                    return 'Отправь сообщение мне в лс, ' \
+                           'чтобы я мог отправить фото с колодой'
 
             await event.answer(attachment=f"{resp},{resp_doc}")
             print("image_sent")
