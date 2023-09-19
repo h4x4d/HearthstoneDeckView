@@ -1,3 +1,4 @@
+import datetime
 import os
 import random
 
@@ -37,16 +38,22 @@ async def main(event: SimpleBotEvent):
 
     for word in text:
         if word[:2] == "AA":
-            print(word)
+            time_start = datetime.datetime.now()
             image = await create_picture(word)
             if not image:
                 return
-            print("image_created")
+            print("time creating: ", datetime.datetime.now() - time_start)
             name = random.randint(1000000, 10000000)
 
+            time_start = datetime.datetime.now()
+            if event.peer_id > 2000000000:
+                x, y = image.size
+                image = image.resize((int(x / 2), int(y / 2)))
             image.save(f"{name}.png", format="PNG")
-            print("image_saved")
+            print("time saving: ", datetime.datetime.now() - time_start)
             resp_doc = ""
+
+            time_start = datetime.datetime.now()
 
             try:
                 resp = await photo_uploader.get_attachment_from_path(
@@ -67,7 +74,7 @@ async def main(event: SimpleBotEvent):
                            'чтобы я мог отправить фото с колодой'
 
             await event.answer(attachment=f"{resp},{resp_doc}")
-            print("image_sent")
+            print("time sending:", datetime.datetime.now() - time_start)
 
             os.remove(f"{name}.png")
             print("image_deleted")
