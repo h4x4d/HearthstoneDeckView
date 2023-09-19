@@ -25,7 +25,7 @@ poetry install
 ```
 ### 2.2. Via default python
 ``` 
-pip install -r requierements.txt
+pip install -r requirements.txt
 ```
 ### 3. Set up env variables
 Create file called ".env" and fill it like example showed in file ".env-example"
