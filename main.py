@@ -2,7 +2,9 @@ import datetime
 import os
 import random
 
-import grequests
+from gevent.monkey import patch_all
+patch_all(thread=False, select=False)
+
 from vkwave.api.methods._error import APIError
 from vkwave.bots import (DocUploader, PhotoUploader, SimpleBotEvent,
                          SimpleLongPollBot)
@@ -70,8 +72,8 @@ async def main(event: SimpleBotEvent):
                         peer_id=event.user_id, file_path=f"{name}.png",
                         file_extension="png")
                 except APIError:
-                    return 'Отправь сообщение мне в лс, ' \
-                           'чтобы я мог отправить фото с колодой'
+                    return "Отправь сообщение мне в лс, " \
+                           "чтобы я мог отправить фото с колодой"
 
             await event.answer(attachment=f"{resp},{resp_doc}")
             print("time sending:", datetime.datetime.now() - time_start)
