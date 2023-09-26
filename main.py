@@ -3,6 +3,7 @@ import os
 import random
 
 from gevent.monkey import patch_all
+
 patch_all(thread=False, select=False)
 
 from vkwave.api.methods._error import APIError
@@ -16,11 +17,6 @@ bot = SimpleLongPollBot(tokens=TOKEN, group_id=GROUP_ID)
 
 photo_uploader = PhotoUploader(api_context=bot.api_context)
 file_uploader = DocUploader(api_context=bot.api_context)
-
-
-@bot.message_handler(bot.command_filter(["life", "live", "check"]))
-async def life(_):
-    return "alive"
 
 
 @bot.message_handler()
