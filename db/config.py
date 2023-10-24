@@ -9,6 +9,7 @@ TOKEN = os.getenv("TOKEN")
 
 GROUP_ID = os.getenv("GROUP_ID")
 
-BATTLE_NET_TOKEN = os.getenv("BATTLE_NET_TOKEN")
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 FOLDER = "cards/"
