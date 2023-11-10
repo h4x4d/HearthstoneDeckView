@@ -48,6 +48,9 @@ class BlizzardAPI:
             "access_token": self.access_token,
         }
         response = await self.get(self.url + "/deck", params=params)
+        if response.status_code >= 500:
+            response = await self.get(self.url + "/deck", params=params)
+
         json = response.json()
 
         return json
