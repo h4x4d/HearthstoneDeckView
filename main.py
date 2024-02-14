@@ -2,6 +2,8 @@ import datetime
 import os
 import random
 
+from vkwave.types.objects import MessagesMessage
+
 import patch
 
 from vkwave.api.methods._error import APIError
@@ -17,10 +19,17 @@ photo_uploader = PhotoUploader(api_context=bot.api_context)
 file_uploader = DocUploader(api_context=bot.api_context)
 
 
+def unpack_forward(message: MessagesMessage):
+    result = ""
+    if message.fwd_messages:
+        for i in message.fwd_messages:
+            result += " " + unpack_forward(i)
+    return message.text + " " + result
+
+
 @bot.message_handler()
 async def main(event: SimpleBotEvent):
-    t = event.object.object.message.text
-
+    t = unpack_forward(event.object.object.message)
     text = t.split()
 
     if t == "Начать" and event.peer_id < 2000000000:
