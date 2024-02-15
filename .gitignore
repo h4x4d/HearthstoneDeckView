@@ -13,5 +13,6 @@ __pycache__/
 *$py.class
 
 test.py
+test*.py
 test/
 tests/
