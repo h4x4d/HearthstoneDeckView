@@ -2,13 +2,10 @@ import datetime
 import os
 import random
 
-from vkwave.types.objects import MessagesMessage
-
-import patch
-
 from vkwave.api.methods._error import APIError
 from vkwave.bots import (DocUploader, PhotoUploader, SimpleBotEvent,
                          SimpleLongPollBot)
+from vkwave.types.objects import MessagesMessage
 
 from db.config import GROUP_ID, TOKEN
 from db.constants import BANNED
@@ -33,9 +30,6 @@ async def main(event: SimpleBotEvent):
     t = unpack_forward(event.object.object.message)
     text = t.split()
 
-    if event.peer_id in BANNED:
-        return "Группа забанена в Deck Viewer."
-
     if t == "Начать" and event.peer_id < 2000000000:
         return "Привет. Отправь мне код колоды для того, чтобы я " \
                "сгенерировать картинку по нему для удобного отображения." \
@@ -47,6 +41,9 @@ async def main(event: SimpleBotEvent):
 
     for word in text:
         if word[:2] == "AA":
+            if event.peer_id in BANNED:
+                return "Группа забанена в Deck Viewer."
+
             time_start = datetime.datetime.now()
             image = await create_picture(word)
             if not image:
