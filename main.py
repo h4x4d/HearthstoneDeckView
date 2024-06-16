@@ -11,6 +11,7 @@ from vkwave.bots import (DocUploader, PhotoUploader, SimpleBotEvent,
                          SimpleLongPollBot)
 
 from db.config import GROUP_ID, TOKEN
+from db.constants import BANNED
 from image_creator import create_picture
 
 bot = SimpleLongPollBot(tokens=TOKEN, group_id=GROUP_ID)
@@ -31,6 +32,9 @@ def unpack_forward(message: MessagesMessage):
 async def main(event: SimpleBotEvent):
     t = unpack_forward(event.object.object.message)
     text = t.split()
+
+    if event.peer_id in BANNED:
+        return "Группа забанена в Deck Viewer."
 
     if t == "Начать" and event.peer_id < 2000000000:
         return "Привет. Отправь мне код колоды для того, чтобы я " \
