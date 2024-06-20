@@ -7,4 +7,4 @@ COST_OF_CARDS = {
     None: 0
 }
 
-BANNED = [2000000000 + 30]
+BANNED = []
