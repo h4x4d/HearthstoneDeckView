@@ -25,6 +25,14 @@ def unpack_forward(message: Message):
     return message.text + " " + result
 
 
+def unpack_repost(message: Message):
+    res = " "
+    for i in message.attachments:
+        if i.wall:
+            res += i.wall.text
+    return res
+
+
 @bot.on.message(text="Начать")
 async def start_handler(message: Message):
     if message.peer_id < 2000000000:
@@ -39,7 +47,7 @@ async def start_handler(message: Message):
 
 @bot.on.message()
 async def main_handler(message: Message):
-    t = unpack_forward(message)
+    t = unpack_forward(message) + unpack_repost(message)
     text = t.split()
     for word in text:
         if word[:2] == "AA":
