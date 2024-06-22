@@ -1,26 +1,23 @@
-from gevent import monkey as curious_george
-curious_george.patch_all(thread=False, select=False)
-
 import datetime
 import os
 import random
 
-from vkwave.api.methods._error import APIError
-from vkwave.bots import (DocUploader, PhotoUploader, SimpleBotEvent,
-                         SimpleLongPollBot)
-from vkwave.types.objects import MessagesMessage
+from patch import *
 
-from db.config import GROUP_ID, TOKEN
+from vkbottle import PhotoMessageUploader, DocMessagesUploader, VKAPIError
+from vkbottle.bot import Bot, Message
+
+from db.config import TOKEN
 from db.constants import BANNED
 from image_creator import create_picture
 
-bot = SimpleLongPollBot(tokens=TOKEN, group_id=GROUP_ID)
+bot = Bot(TOKEN)
 
-photo_uploader = PhotoUploader(api_context=bot.api_context)
-file_uploader = DocUploader(api_context=bot.api_context)
+photo_uploader = PhotoMessageUploader(bot.api)
+file_uploader = DocMessagesUploader(bot.api)
 
 
-def unpack_forward(message: MessagesMessage):
+def unpack_forward(message: Message):
     result = ""
     if message.fwd_messages:
         for i in message.fwd_messages:
@@ -28,12 +25,9 @@ def unpack_forward(message: MessagesMessage):
     return message.text + " " + result
 
 
-@bot.message_handler()
-async def main(event: SimpleBotEvent):
-    t = unpack_forward(event.object.object.message)
-    text = t.split()
-
-    if t == "Начать" and event.peer_id < 2000000000:
+@bot.on.message(text="Начать")
+async def start_handler(message: Message):
+    if message.peer_id < 2000000000:
         return "Привет. Отправь мне код колоды для того, чтобы я " \
                "сгенерировать картинку по нему для удобного отображения." \
                "Также я поддерживаю возможность автоматически " \
@@ -42,48 +36,68 @@ async def main(event: SimpleBotEvent):
                "Для этого добавьте меня и выдайте админские права через " \
                "кнопку на главной странице сообщества."
 
+
+@bot.on.message()
+async def main_handler(message: Message):
+    t = unpack_forward(message)
+    text = t.split()
     for word in text:
         if word[:2] == "AA":
-            if event.peer_id in BANNED:
+            if message.peer_id in BANNED:
                 return "Группа забанена в Deck Viewer."
 
             time_start = datetime.datetime.now()
-            image = await create_picture(word)
-            if not image:
-                return
+            try:
+                image = await create_picture(word)
+                if not image:
+                    return
+            except Exception as e:
+                print(e)
+                return ("Возникла ошибка в генерации."
+                        "\nЕсли такое происходит постоянно, обратитесь к автору вместе с кодом.")
+
             print("time creating: ", datetime.datetime.now() - time_start)
             name = random.randint(1000000, 10000000)
 
             time_start = datetime.datetime.now()
-            if event.peer_id > 2000000000:
+            if message.peer_id > 2000000000:
                 x, y = image.size
                 image = image.resize((int(x / 2), int(y / 2)))
             image.save(f"{name}.png", format="PNG")
             print("time saving: ", datetime.datetime.now() - time_start)
-            resp_doc = ""
 
             time_start = datetime.datetime.now()
 
             try:
-                resp = await photo_uploader.get_attachment_from_path(
-                    peer_id=event.peer_id, file_path=f"{name}.png",
-                    file_extension="png")
-
-                if event.peer_id < 2000000000:
-                    resp_doc = await file_uploader.get_attachment_from_path(
-                        peer_id=event.peer_id, file_path=f"{name}.png",
-                        file_extension="png")
-            except APIError:
+                resp = await photo_uploader.upload(
+                    file_source=f"{name}.png",
+                    peer_id=message.peer_id)
+            except VKAPIError[10]:
                 try:
-                    resp = await photo_uploader.get_attachment_from_path(
-                        peer_id=event.user_id, file_path=f"{name}.png",
-                        file_extension="png")
-                except APIError:
-                    return "Отправь сообщение мне в лс, " \
-                           "чтобы я мог отправить фото с колодой"
+                    resp = await photo_uploader.upload(
+                        file_source=f"{name}.png",
+                        peer_id=message.from_id)
+                except VKAPIError[10]:
+                    return ("Возникла ошибка при отправке кода.\nВозможно у вас нет переписки"
+                            "c ботом или проблема на стороне VK.")
+            except Exception as e:
+                print(e)
+                try:
+                    resp = await photo_uploader.upload(
+                        file_source=f"{name}.png",
+                        peer_id=message.peer_id)
+                except Exception:
+                    return 'Возникла проблема при отправке кода. Возможно поможет переотправка.'
 
-            await event.answer(attachment=f"{resp},{resp_doc}")
+            await message.answer(attachment=f"{resp}")
             print("time sending:", datetime.datetime.now() - time_start)
+
+            if message.peer_id < 2000000000:
+                resp_doc = await file_uploader.upload(
+                    title=f"{word}.png",
+                    file_source=f"{name}.png",
+                    peer_id=message.peer_id)
+                await message.answer(attachment=f"{resp_doc}")
 
             os.remove(f"{name}.png")
             print("image_deleted")
