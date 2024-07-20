@@ -1,6 +1,7 @@
 import datetime
 import os
 import random
+import sys
 
 from patch import *
 
@@ -10,10 +11,11 @@ from vkbottle.bot import Bot, Message
 from db.config import TOKEN
 from db.constants import BANNED
 from image_creator import create_picture
-import logging
+from loguru import logger
 
 bot = Bot(TOKEN)
-logging.getLogger("vkbottle").setLevel(logging.ERROR)
+logger.remove()
+logger.add(sys.stderr, level="ERROR")
 
 photo_uploader = PhotoMessageUploader(bot.api)
 file_uploader = DocMessagesUploader(bot.api)
