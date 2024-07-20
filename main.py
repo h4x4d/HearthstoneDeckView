@@ -10,8 +10,10 @@ from vkbottle.bot import Bot, Message
 from db.config import TOKEN
 from db.constants import BANNED
 from image_creator import create_picture
+import logging
 
 bot = Bot(TOKEN)
+logging.getLogger("vkbottle").setLevel(logging.ERROR)
 
 photo_uploader = PhotoMessageUploader(bot.api)
 file_uploader = DocMessagesUploader(bot.api)
